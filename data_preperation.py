@@ -2,8 +2,8 @@ import numpy as np
 
 class PrepareData:
 
-    def __init__(self):
-        pass
+    def __init__(self,mode='train'):
+        self.mode = mode
 
     def read_files(self, path, num_samples):
         input_texts = []
@@ -42,6 +42,8 @@ class PrepareData:
         self.target_word_index = dict([(word ,i) for i, word in enumerate(target_words)])
         self.reverse_input_word_dict = dict((i,word) for word, i in self.input_word_index.items())
         self.reverse_target_word_dict = dict((i,word) for word, i in self.target_word_index.items())
+
+        return input_texts, target_texts
 
     def process_inputs(self, input_texts, target_texts=None):
         encoder_input_data = np.zeros((len(input_texts), self.max_encoder_seq_length, self.num_encoder_words), dtype='float32')

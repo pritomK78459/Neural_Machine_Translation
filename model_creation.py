@@ -1,14 +1,14 @@
-import data_preperation
+from data_preperation import PrepareData
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras import Input
 
-class CreateModel(data_preperation):
-    def __init__(self):
-        pass
+class CreateModel(PrepareData):
+    def __init__(self, latent_dim):
+        self.latent_dim = latent_dim
 
     def model_enc_dec(self):
-        encoder_input = Input(shape=(None, self.num_enocder_words), name='encoder_input')
+        encoder_input = Input(shape=(None, self.num_encoder_words), name='encoder_input')
         encoder = LSTM(self.latent_dim, return_state=True, name='encoder')
         encoder_out, state_h, state_c = encoder(encoder_input)
         encoder_states = [state_h, state_c]
@@ -19,8 +19,8 @@ class CreateModel(data_preperation):
         decoder_dense = Dense(self.num_deocder_words, activation='softmax', name='decoder_dense')
         decoder_out = decoder_dense(decoder_out)
 
-        model = Model(inputs=[encoder_input,decoder_input],outputs=decoder_out)
-        encoder_model = Model(inputs=encoder_input,outputs=encoder_states)
+        model = Model(inputs=[encoder_input, decoder_input],outputs=decoder_out)
+        encoder_model = Model(inputs=encoder_input, outputs=encoder_states)
 
         decoder_inp_h = Input(shape=(self.latent_dim,))
         decoder_inp_c = Input(shape=(self.latent_dim,))
