@@ -5,17 +5,18 @@ import tensorflow
 
 class TrainModel(CreateModel):
     def __init__(self, batch_size=64,epochs=10):
+        CreateModel.__init__(self)
         self.batch_size = batch_size
         self.epochs = epochs
 
-    def train(self, encoder_input_data, decoder_input_data,decoder_target_data):
+    def train(self, encoder_input_data, decoder_input_data, decoder_target_data, outdir):
         print("Training the model ....")
         model, encoder_model, decoder_model = self.model_enc_dec()
         model.compile(optimizer='adam',loss='categorical_crossentropy')
         model.fit(x=[encoder_input_data,decoder_input_data],y=decoder_target_data,
                   batch_size=self.batch_size,epochs=self.epochs,validation_split=0.2)
 
-        model.save(self.outdir + 'eng_2_fre.h5')
+        model.save(outdir + 'eng_2_fre.h5')
         return model, encoder_model, decoder_model
 
     def train_test_split(self, num_recs, train_frac=0.8):
@@ -31,7 +32,7 @@ class TrainModel(CreateModel):
         states_value = encoder_model.predict(input_sequence)
         target_sequence = np.zeros((1,1, self.num_decoder_words))
         target_sequence[0, 0, self.target_word_index['\t']] = 1.
-
+        print(self.target_word_index)
         stop_condition = False
         decoded_sentence = ''
 
@@ -66,8 +67,20 @@ class TrainModel(CreateModel):
 if __name__ == '__main__':
     train_model = TrainModel()
     prepare_data = PrepareData('train')
-    input_texts, target_texts = prepare_data.vocab_generation('./fra.txt', 20000)
-    encoder_input_data, decoder_input_data, decoder_target_data, input_texts, target_texts = prepare_data.process_inputs(input_texts,target_texts)
-    create_model = CreateModel(7)
-    model, encoder_model, decoder_model = create_model.model_enc_dec()
+    input_text_preprocess, target_text_preprocess = train_model.vocab_generation('./fra.txt', 2000)
+    encoder_input_data, decoder_input_data, decoder_target_data, input_texts, target_texts = train_model.process_inputs(input_text_preprocess, target_text_preprocess)
+    create_model = CreateModel(1000)
+    train_indices, test_indices = train_model.train_test_split(2000)
+    train_encoder_input_data = encoder_input_data[train_indices]
+    test_encoder_input_data = encoder_input_data[test_indices]
+    train_decoder_input_data = decoder_input_data[train_indices]
+    test_decoder_input_data = decoder_input_data[test_indices]
+    train_decoder_target_data = decoder_target_data[train_indices]
+    test_decoder_target_data = decoder_target_data[test_indices]
+    train_input_texts = input_texts[train_indices]
+    test_input_texts = input_texts[test_indices]
+    model, encoder_model1, decoder_model1 = train_model.train(train_encoder_input_data, train_decoder_input_data, train_decoder_target_data,'./models/')
+    #encoder_input_data_inference, _, _, input_texts_inference, _ = train_model.process_inputs(input_text_preprocess,target_text_preprocess)
+    in_list, out_list = train_model.inference(model, test_encoder_input_data, encoder_model1, decoder_model1, test_input_texts)
+
 

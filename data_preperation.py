@@ -8,14 +8,14 @@ class PrepareData:
     def read_files(self, path, num_samples):
         input_texts = []
         target_texts = []
-        input_words = set([])
-        target_words = set([])
+        input_words = set()
+        target_words = set()
 
         with open(path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
+            lines = file.read().split('\n')
         for line in lines[: min(num_samples, len(lines) -1)]:
-            input_text, target_text = line.split("\t")[:2]
-            target_text = '\t' + target_text + '\n'
+            input_text, target_text = line.split("\t")[:-1]
+            target_text = '\t ' + target_text + ' \n'
             input_texts.append(input_text)
             target_texts.append(target_text)
 
